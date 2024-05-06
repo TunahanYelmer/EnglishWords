@@ -1,0 +1,16 @@
+<resources>
+    <string name="app_name">English Words</string>
+    <string name="unit_9_aile">9. Ünite Aile \n</string>
+    <string name="unit_1_sayilar">1. Ünite Sayılar\n</string>
+    <string name="unit_2_renkler">2. Ünite Renkler\n</string>
+    <string name="unit_3_hayvanlar">3. Ünite Hayvanlar\n</string>
+    <string name="unit_4_yemekler">4. Ünite Yemekler \n</string>
+    <string name="unit_5_meyveler">5.Ünite Meyveler \n</string>
+    <string name="unit_6_kiyafetler">6. Ünite Kiyafetler \n</string>
+    <string name="unit_7_okul">7. Ünite Okul \n </string>
+    <string name="unit_8_hava_durumu">8. Ünite Hava Durumu \n</string>
+    <string name="unit_10_tasitlar">10. Ünite Taşıtlar\n</string>
+    <string name="ogren">Ögren!</string>
+    <string name="test_et">Ögrendikleri Test Et!</string>
+    <string name="eslestir">Eşleştirme Yap</string>
+</resources>

@@ -1,0 +1,10 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_item_1"
+        android:icon="@drawable/ogren_icon"
+        android:title="Ögren!" />
+    <item
+        android:id="@+id/menu_item_2"
+        android:icon="@drawable/test_icon"
+        android:title="Test Et!" />
+</menu>
