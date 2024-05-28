@@ -6,14 +6,11 @@ import java.util.Map;
 
 public class VocabularyClass {
     private final Map<WordData, String> vocabulary;
-    private final Map<String, Integer> VocabularyImageResource;
-    private int[] mImages;
+    private final Map<String, Integer> vocabularyImageResource;
 
     public VocabularyClass() {
-        // Initialize vocabulary with sample words and their corresponding images
         vocabulary = new HashMap<>();
-        VocabularyImageResource = new HashMap<>();
-        // Add more vocabulary words and images as needed
+        vocabularyImageResource = new HashMap<>();
     }
 
     public String getTranslation(String word) {
@@ -22,7 +19,7 @@ public class VocabularyClass {
                 return entry.getKey().getWordTranslation();
             }
         }
-        return null; // Word not found
+        return null;
     }
 
     public ArrayList<String> getWords() {
@@ -34,73 +31,71 @@ public class VocabularyClass {
     }
 
     public void addVocabulary(String word, String wordTranslation, String imageFileName) {
-        // Add a new word and its corresponding translation and image file name to the vocabulary
+        if (word == null || word.isEmpty()) {
+            throw new IllegalArgumentException("word cannot be null or empty");
+        }
+        if (wordTranslation == null || wordTranslation.isEmpty()) {
+            throw new IllegalArgumentException("wordTranslation cannot be null or empty");
+        }
+        if (imageFileName == null || imageFileName.isEmpty()) {
+            throw new IllegalArgumentException("imageFileName cannot be null or empty");
+        }
         vocabulary.put(new WordData(word, wordTranslation), imageFileName);
     }
 
     public String getRandomWord() {
-        // Get a random word from the vocabulary
+        if (vocabulary.isEmpty()) {
+            return null;
+        }
         int index = (int) (Math.random() * vocabulary.size());
         return vocabulary.keySet().toArray(new WordData[0])[index].getWord();
     }
 
     public String getImageFileName(String word) {
-        // Get the image file name corresponding to the given word
         for (Map.Entry<WordData, String> entry : vocabulary.entrySet()) {
             if (entry.getKey().getWord().equals(word)) {
                 return entry.getValue();
             }
         }
-        return null; // Word not found
-    }
-    public String getWordFromImageResource(int imageResourceID) {
-        // Get the word corresponding to the given image resource ID
-        for (Map.Entry<WordData, String> entry : vocabulary.entrySet()) {
-            try {
-                if (VocabularyImageResource.get(entry.getKey().getWord()) == imageResourceID) {
-                    System.out.println(entry.getKey().getWord());
-                    return entry.getKey().getWord();
-                }
-            } catch (Exception e) {
-                System.out.println("Error: " + e);
-                // You might want to handle the exception appropriately here
-                return null; // Return null if there's an error
-            }
-        }
-        return null; // Return null if no matching word is found
+        return null;
     }
 
     public void addVocabularyImageResource(String word, int imageResourceID) {
-        VocabularyImageResource.put(word, imageResourceID);
-
+        vocabularyImageResource.put(word, imageResourceID);
     }
 
     public int getImageResource(String word) {
-        // Get the image resource ID corresponding to the given word
-        for (Map.Entry<String, Integer> entry : VocabularyImageResource.entrySet()) {
-            if (entry.getKey().equals(word)) {
-                return entry.getValue();
-            }
-        }
-        return 0; // Word not found
+        Integer resourceID = vocabularyImageResource.get(word);
+        return resourceID != null ? resourceID : 0;
     }
 
     public int[] getImages() {
-        // Get the image resource ID corresponding to the given word
-        mImages = new int[VocabularyImageResource.size()];
+        int[] images = new int[vocabularyImageResource.size()];
         int i = 0;
-        for (Map.Entry<String, Integer> entry : VocabularyImageResource.entrySet()) {
-            mImages[i] = entry.getValue();
+        for (int imageResourceID : vocabularyImageResource.values()) {
+            images[i] = imageResourceID;
             i++;
         }
-        return mImages;
+        return images;
     }
 
-    public int size() {
-        return vocabulary.size();
+    public String getWordFromImageResource(int imageResourceID) {
+        for (Map.Entry<String, Integer> entry : vocabularyImageResource.entrySet()) {
+            if (entry.getValue() == imageResourceID) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
-    // Inner class to encapsulate word and translation
+    public Map<String, String> getWordToImageFileName() {
+        Map<String, String> wordToImageFileName = new HashMap<>();
+        for (Map.Entry<WordData, String> entry : vocabulary.entrySet()) {
+            wordToImageFileName.put(entry.getKey().getWord(), entry.getValue());
+        }
+        return wordToImageFileName;
+    }
+
     public static class WordData {
         private final String word;
         private final String wordTranslation;

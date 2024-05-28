@@ -1,12 +1,13 @@
 package com.example.englishwords;
+import static android.content.ContentValues.TAG;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,7 +15,6 @@ import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
-import java.lang.reflect.Field;
 import java.util.Locale;
 
 public class Unit1NumbersLearn extends AppCompatActivity {
@@ -23,9 +23,15 @@ public class Unit1NumbersLearn extends AppCompatActivity {
     private TextView translationTextView;
     private Button speakButtonEnglish;
     private Button speakButtonTurkish;
-    private VocabularyClass exercise;
+    private String word;
+    private String wordTranslation;
+    private FirebaseStorageHelper firebaseStorageHelper;
+
+
+    private VocabularyClass exercise; // Changed from VocabularyClass to FirebaseDatabaseOperations
     private TextToSpeechAgent speaker;
     private Button nextButton;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,62 +48,62 @@ public class Unit1NumbersLearn extends AppCompatActivity {
         speakButtonEnglish = findViewById(R.id.button3);
         speakButtonTurkish = findViewById(R.id.button2);
 
-        exercise = new VocabularyClass();
-        exercise.addVocabulary("Zero", "Sıfır", "number_0.jpg");
-        exercise.addVocabulary("One", "Bir", "number_1.jpg");
-        exercise.addVocabulary("Two", "İki", "number_2.jpg");
-        exercise.addVocabulary("Three", "Üç", "number_3.jpg");
-        exercise.addVocabulary("Four", "Dört", "number_4.jpg");
-        exercise.addVocabulary("Five", "Beş", "number_5.jpg");
-        exercise.addVocabulary("Six", "Altı", "number_6.jpg");
-        exercise.addVocabulary("Seven", "Yedi", "number_7.jpg");
-        exercise.addVocabulary("Eight", "Sekiz", "number_8.jpg");
-        exercise.addVocabulary("Nine", "Dokuz", "number_9.jpg");
-        exercise.addVocabularyImageResource("Zero", R.drawable.number_0);
-        exercise.addVocabularyImageResource("One", R.drawable.number_1);
-        exercise.addVocabularyImageResource("Two", R.drawable.number_2);
-        exercise.addVocabularyImageResource("Three", R.drawable.number_3);
-        exercise.addVocabularyImageResource("Four", R.drawable.number_4);
-        exercise.addVocabularyImageResource("Five", R.drawable.number_5);
-        exercise.addVocabularyImageResource("Six", R.drawable.number_6);
-        exercise.addVocabularyImageResource("Seven", R.drawable.number_7);
-        exercise.addVocabularyImageResource("Eight", R.drawable.number_8);
-        exercise.addVocabularyImageResource("Nine", R.drawable.number_9);
+
+        // Initialize Firebase operations
+        displayNextQuestion();
         speaker = new TextToSpeechAgent(this, Locale.ENGLISH);
-        int numberOfVocabularyWords = exercise.size();
-
+        nextButton = findViewById(R.id.button);
+        nextButton.setOnClickListener(v -> {
             displayNextQuestion();
-            nextButton = findViewById(R.id.button);
-            nextButton.setOnClickListener(v -> {
-                displayNextQuestion();
-            });
+        });
     }
+
     private void displayNextQuestion() {
-        // Get a random word from the exercise
-        String word = exercise.getRandomWord();
-        String wordTranslation = exercise.getTranslation(word);
-        // Load and display corresponding image
-        // Load and display corresponding image
-        String imageName = exercise.getImageFileName(word);
-        int resId = exercise.getImageResource(word);
-        if (resId != 0) { // Check if the resource was found
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Numbers", Unit1NumbersLearn.this);
+        fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
+            // This block will be executed when the vocabulary is loaded
+            if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
+                // Get a random word from the vocabulary
+                String word = vocabulary.getRandomWord();
+                String wordTranslation = vocabulary.getTranslation(word);
+                this.word = word;
+                this.wordTranslation = wordTranslation;
+                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Numbers",vocabulary.getImageFileName(word));
+                firebaseStorageHelper.downloadImage().thenAccept(file -> {
+                    Log.d(TAG, "Image loaded : " +  vocabulary.getImageFileName(word));
+                    // This block will be executed when the image is downloaded
+                    if (file != null) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                        // Run on UI thread since UI operations can't be done on a background thread
+                        runOnUiThread(() -> imageView.setImageBitmap(bitmap));
+                    }
+                }).exceptionally(e -> {
+                    // This block will be executed if there was an error downloading the image
+                    Log.e(TAG, "Error loading image: " + e.getMessage());
+                    return null;
+                });
 
-            imageView.setImageResource(resId);
-        } else {
-            // Display a toast message if the image resource was not found
-            Toast.makeText(this, "Image resource not found for " + resId, Toast.LENGTH_SHORT).show();
-        }
-        // Display the word
-        wordTextView.setText(word);
-        translationTextView.setText(wordTranslation);
-        speakButtonEnglish.setOnClickListener(v -> {
-            speaker.setLanguage(Locale.ENGLISH);
-            speaker.speak(word);
-        });
-        speakButtonTurkish.setOnClickListener(v -> {
-            speaker.setLanguage(new Locale("tr", "TR"));
-            speaker.speak(wordTranslation);
-        });
 
+                // Set the word to the TextView
+                wordTextView.setText(word);
+                translationTextView.setText(wordTranslation);
+
+                // Set up the speak buttons
+                speakButtonEnglish.setOnClickListener(v -> {
+                    speaker.setLanguage(Locale.ENGLISH);
+                    speaker.speak(word);
+                });
+                speakButtonTurkish.setOnClickListener(v -> {
+                    speaker.setLanguage(new Locale("tr", "TR"));
+                    speaker.speak(wordTranslation);
+                });
+
+                Log.d(TAG, "displayNextQuestion: " + word);
+            }
+        }).exceptionally(e -> {
+            // This block will be executed if there was an error loading the vocabulary
+            System.out.println("Error loading vocabulary: " + e.getMessage());
+            return null;
+        });
     }
 }

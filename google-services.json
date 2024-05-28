@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "565681679457",
+    "project_id": "mobilprogramalamafinal",
+    "storage_bucket": "mobilprogramalamafinal.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:565681679457:android:90402da8d3466f4b190e20",
+        "android_client_info": {
+          "package_name": "com.example.englishwords"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7N5ueiwS851uVZ5op3E7K5ov5eETasOI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

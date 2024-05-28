@@ -1,7 +1,11 @@
 package com.example.englishwords;
 
+import static android.content.ContentValues.TAG;
+
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
-import android.widget.Button;
+import android.util.Log;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -11,21 +15,24 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
 
 public class Unit1NumbersMatch extends AppCompatActivity {
     private VocabularyClass exercise;
-    private int[] mImages;
-    private final int[] selectedImages = new int[5];
+    private final List<Pair> selectedPairs = new ArrayList<>();
     private final Random rnd = new Random();
-    private ImageView imageView;
-    private ImageView imageView2;
-    private ImageView imageView3;
-    private ImageView imageView4;
-    private DraggableButton draggableButton;
-    private DraggableButton draggableButton2;
-    private DraggableButton draggableButton3;
-    private DraggableButton draggableButton4;
+    private ImageView imageViewTop;
+    private ImageView imageViewMiddleTop;
+    private ImageView imageViewMiddleBottom;
+    private ImageView imageViewBottom;
+    private DraggableButton draggableButtonTopLeft;
+    private DraggableButton draggableButtonTopRight;
+    private DraggableButton draggableButtonBottomLeft;
+    private DraggableButton draggableButtonBottomRight;
     private final ArrayList<DraggableButton> selectedButtons = new ArrayList<>();
 
     @Override
@@ -39,95 +46,124 @@ public class Unit1NumbersMatch extends AppCompatActivity {
             return insets;
         });
 
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Numbers", Unit1NumbersMatch.this);
+        CompletableFuture<VocabularyClass> vocabularyFuture = fireStoreDatabase.getVocabulary();
 
-        exercise = new VocabularyClass();
-        exercise.addVocabulary("Zero", "Sıfır", "number_0.jpg");
-        exercise.addVocabulary("One", "Bir", "number_1.jpg");
-        exercise.addVocabulary("Two", "İki", "number_2.jpg");
-        exercise.addVocabulary("Three", "Üç", "number_3.jpg");
-        exercise.addVocabulary("Four", "Dört", "number_4.jpg");
-        exercise.addVocabulary("Five", "Beş", "number_5.jpg");
-        exercise.addVocabulary("Six", "Altı", "number_6.jpg");
-        exercise.addVocabulary("Seven", "Yedi", "number_7.jpg");
-        exercise.addVocabulary("Eight", "Sekiz", "number_8.jpg");
-        exercise.addVocabulary("Nine", "Dokuz", "number_9.jpg");
-        exercise.addVocabularyImageResource("Zero", R.drawable.number_0);
-        exercise.addVocabularyImageResource("One", R.drawable.number_1);
-        exercise.addVocabularyImageResource("Two", R.drawable.number_2);
-        exercise.addVocabularyImageResource("Three", R.drawable.number_3);
-        exercise.addVocabularyImageResource("Four", R.drawable.number_4);
-        exercise.addVocabularyImageResource("Five", R.drawable.number_5);
-        exercise.addVocabularyImageResource("Six", R.drawable.number_6);
-        exercise.addVocabularyImageResource("Seven", R.drawable.number_7);
-        exercise.addVocabularyImageResource("Eight", R.drawable.number_8);
-        exercise.addVocabularyImageResource("Nine", R.drawable.number_9);
-        mImages = exercise.getImages();
-        for (int i = 0; i < 5; i++) {
-            int randomIndex = rnd.nextInt(9); // Generate random index
-            while (mImages[randomIndex] == 0) {
-                // If the image at this index is already selected, generate a new random index
-                randomIndex = rnd.nextInt(9);
+        vocabularyFuture.thenAccept(vocabulary -> {
+            if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
+                exercise = vocabulary;
+                runOnUiThread(() -> {
+                    initializeImages();
+                    initializeDraggableButtons();
+                });
             }
-            selectedImages[i] = mImages[randomIndex]; // Assign the selected image to selectedImages
-            mImages[randomIndex] = 0; // Mark the image as selected in mImages
-        }
-        imageView = findViewById(R.id.imageView3);
-        imageView2 = findViewById(R.id.imageView4);
-        imageView3 = findViewById(R.id.imageView5);
-        imageView4 = findViewById(R.id.imageView6);
-         draggableButton = findViewById(R.id.draggableButton);
-         draggableButton2 = findViewById(R.id.draggableButton2);
-        draggableButton3 = findViewById(R.id.draggableButton3);
-         draggableButton4 = findViewById(R.id.draggableButton4);
-        imageView.setImageResource(selectedImages[0]);
-        imageView2.setImageResource(selectedImages[1]);
-        imageView3.setImageResource(selectedImages[2]);
-        imageView4.setImageResource(selectedImages[3]);
+        }).exceptionally(e -> {
+            Log.e(TAG, "Error loading vocabulary: " + e.getMessage());
+            return null;
+        });
+    }
 
+    private void initializeImages() {
+        ArrayList<String> wordsList = exercise.getWords();
+        Map<String, String> wordToImageFileName = exercise.getWordToImageFileName();
+
+        List<String> selectedWords = new ArrayList<>();
+        for (int i = 0; i < 4; i++) {
+            int randomIndex = rnd.nextInt(wordsList.size());
+            while (selectedWords.contains(wordsList.get(randomIndex))) {
+                randomIndex = rnd.nextInt(wordsList.size());
+            }
+            String selectedWord = wordsList.get(randomIndex);
+            selectedWords.add(selectedWord);
+            selectedPairs.add(new Pair(selectedWord, wordToImageFileName.get(selectedWord)));
+        }
+
+        imageViewTop = findViewById(R.id.imageViewTop);
+        imageViewMiddleTop = findViewById(R.id.imageViewMiddleTop);
+        imageViewMiddleBottom = findViewById(R.id.imageViewMiddleBottom);
+        imageViewBottom = findViewById(R.id.imageViewBottom);
+
+        loadImageIntoView(imageViewTop, selectedPairs.get(0).getImageFileName());
+        loadImageIntoView(imageViewMiddleTop, selectedPairs.get(1).getImageFileName());
+        loadImageIntoView(imageViewMiddleBottom, selectedPairs.get(2).getImageFileName());
+        loadImageIntoView(imageViewBottom, selectedPairs.get(3).getImageFileName());
+    }
+
+    private void loadImageIntoView(ImageView imageView, String imageFileName) {
+        FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Numbers", imageFileName);
+        firebaseStorageHelper.downloadImage().thenAccept(file -> {
+            if (file != null) {
+                Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                runOnUiThread(() -> imageView.setImageBitmap(bitmap));
+            }
+        }).exceptionally(e -> {
+            Log.e(TAG, "Error loading image: " + e.getMessage());
+            return null;
+        });
+    }
+
+    private void initializeDraggableButtons() {
+        draggableButtonTopLeft = findViewById(R.id.draggableButtonTopLeft);
+        draggableButtonTopRight = findViewById(R.id.draggableButtonTopRight);
+        draggableButtonBottomLeft = findViewById(R.id.draggableButtonBottomLeft);
+        draggableButtonBottomRight = findViewById(R.id.draggableButtonBottomRight);
+
+        DraggableButton[] buttons = { draggableButtonTopLeft, draggableButtonTopRight, draggableButtonBottomLeft, draggableButtonBottomRight };
+
+        // Shuffle the buttons
+        shuffleArray(buttons);
 
         for (int i = 0; i < 4; i++) {
-            // Generate a random button index
-            int randomButtonIndex = rnd.nextInt(4);
-            DraggableButton randomButton;
-            String randomWord;
-
-            // Check if the button at the random index is already selected
-            while (selectedButtons.contains(getDraggableButton(randomButtonIndex))) {
-                // If the button is already selected, generate a new random index
-                randomButtonIndex = rnd.nextInt(4);
-            }
-
-            // Select the button at the random index
-            randomButton = getDraggableButton(randomButtonIndex);
-
-            // Add the selected button to the list of selected buttons
-            selectedButtons.add(randomButton);
-            int randomWordIndex = rnd.nextInt(4);
-            // Get the corresponding word for the selected button's image
-            randomWord = exercise.getWordFromImageResource(selectedImages[randomWordIndex]);
+            DraggableButton randomButton = buttons[i];
+            String randomWord = selectedPairs.get(i).getWord();
             randomButton.setCorrespondingText(randomWord);
             randomButton.setText(randomWord);
-            // Set the corresponding word to the selected button
-
+            selectedButtons.add(randomButton);
         }
+    }
 
-// Helper method to get DraggableButton based on index
-
-
+    // Fisher-Yates shuffle algorithm
+    private void shuffleArray(DraggableButton[] buttons) {
+        Random rnd = new Random();
+        for (int i = buttons.length - 1; i > 0; i--) {
+            int index = rnd.nextInt(i + 1);
+            // Swap
+            DraggableButton temp = buttons[index];
+            buttons[index] = buttons[i];
+            buttons[i] = temp;
+        }
     }
 
     private DraggableButton getDraggableButton(int index) {
         switch (index) {
             case 0:
-                return draggableButton;
+                return draggableButtonTopLeft;
             case 1:
-                return draggableButton2;
+                return draggableButtonTopRight;
             case 2:
-                return draggableButton3;
+                return draggableButtonBottomLeft;
             case 3:
-                return draggableButton4;
+                return draggableButtonBottomRight;
             default:
-                return draggableButton;
+                return draggableButtonTopLeft;
+        }
+    }
+
+    private static class Pair {
+        private final String word;
+        private final String imageFileName;
+
+        Pair(String word, String imageFileName) {
+            this.word = word;
+            this.imageFileName = imageFileName;
+        }
+
+        public String getWord() {
+            return word;
+        }
+
+        public String getImageFileName() {
+            return imageFileName;
         }
     }
 }

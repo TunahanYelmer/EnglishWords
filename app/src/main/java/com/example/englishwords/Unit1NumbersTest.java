@@ -1,9 +1,11 @@
 package com.example.englishwords;
-import static java.lang.String.*;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -18,8 +20,9 @@ import androidx.core.view.WindowInsetsCompat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 import java.util.Random;
+
+import static android.content.ContentValues.TAG;
 
 public class Unit1NumbersTest extends AppCompatActivity {
     private TextView txtScore;
@@ -30,7 +33,6 @@ public class Unit1NumbersTest extends AppCompatActivity {
     private Button option2;
     private Button option3;
     private Button option4;
-    private VocabularyClass exercise = new VocabularyClass();
     private String correctWord;
     private Random random = new Random();
     private CountDownTimer countDownTimer;
@@ -54,154 +56,157 @@ public class Unit1NumbersTest extends AppCompatActivity {
         option4 = findViewById(R.id.button4);
         txtTime = findViewById(R.id.txtTime);
         txtScore = findViewById(R.id.txtScore);
-        exercise.addVocabulary("Zero", "Sıfır", "number_0.jpg");
-        exercise.addVocabulary("One", "Bir", "number_1.jpg");
-        exercise.addVocabulary("Two", "İki", "number_2.jpg");
-        exercise.addVocabulary("Three", "Üç", "number_3.jpg");
-        exercise.addVocabulary("Four", "Dört", "number_4.jpg");
-        exercise.addVocabulary("Five", "Beş", "number_5.jpg");
-        exercise.addVocabulary("Six", "Altı", "number_6.jpg");
-        exercise.addVocabulary("Seven", "Yedi", "number_7.jpg");
-        exercise.addVocabulary("Eight", "Sekiz", "number_8.jpg");
-        exercise.addVocabulary("Nine", "Dokuz", "number_9.jpg");
-        exercise.addVocabularyImageResource("Zero", R.drawable.number_0);
-        exercise.addVocabularyImageResource("One", R.drawable.number_1);
-        exercise.addVocabularyImageResource("Two", R.drawable.number_2);
-        exercise.addVocabularyImageResource("Three", R.drawable.number_3);
-        exercise.addVocabularyImageResource("Four", R.drawable.number_4);
-        exercise.addVocabularyImageResource("Five", R.drawable.number_5);
-        exercise.addVocabularyImageResource("Six", R.drawable.number_6);
-        exercise.addVocabularyImageResource("Seven", R.drawable.number_7);
-        exercise.addVocabularyImageResource("Eight", R.drawable.number_8);
-        exercise.addVocabularyImageResource("Nine", R.drawable.number_9);
         startTest();
         startTimer();
-
     }
 
     private void setOptions() {
-
         // Reset button colors with a slight delay
         new Handler().postDelayed(() -> {
-            String lastWord = "";
+            FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Numbers", Unit1NumbersTest.this);
+            fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
+                // This block will be executed when the vocabulary is loaded
+                if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
+                    // Get a random word from the vocabulary
+                    correctWord = vocabulary.getRandomWord();
 
-            for (Button button : new Button[]{option1, option2, option3, option4}) {
-                button.setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_purple)); // Set default color
-            }
+                    FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Numbers", vocabulary.getImageFileName(correctWord));
+                    firebaseStorageHelper.downloadImage().thenAccept(file -> {
+                        Log.d(TAG, "Image loaded : " + vocabulary.getImageFileName(correctWord));
+                        // This block will be executed when the image is downloaded
+                        if (file != null) {
+                            Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                            // Run on UI thread since UI operations can't be done on a background thread
+                            runOnUiThread(() -> imageView.setImageBitmap(bitmap));
+                        }
+                    }).exceptionally(e -> {
+                        // This block will be executed if there was an error downloading the image
+                        Log.e(TAG, "Error loading image: " + e.getMessage());
+                        return null;
+                    });
 
-            if (!Objects.equals(correctWord, lastWord)) {
-                correctWord = getRandomWord();
-                lastWord = correctWord;
-            } else {
-                correctWord = getRandomWord();
-                lastWord = correctWord;
-            }
+                    // Create a list to hold incorrect words
+                    List<String> incorrectWords = new ArrayList<>(vocabulary.getWords());
+                    incorrectWords.remove(correctWord); // Remove the correct word
 
+                    // Shuffle the list of incorrect words
+                    Collections.shuffle(incorrectWords);
 
-            String correctTranslation = exercise.getTranslation(correctWord); // Use VocabularyClass method
-            int correctImageResource = exercise.getImageResource(correctWord); // Use VocabularyClass method
+                    // Assign correct and incorrect options to buttons
+                    List<Button> buttons = new ArrayList<>();
+                    buttons.add(option1);
+                    buttons.add(option2);
+                    buttons.add(option3);
+                    buttons.add(option4);
 
-            // Create a list to hold incorrect words
-            List<String> incorrectWords = new ArrayList<>(exercise.getWords());
-            incorrectWords.remove(correctWord); // Remove the correct word
+                    // Assign correct translation to a random button
+                    int correctButtonIndex = random.nextInt(buttons.size());
+                    buttons.get(correctButtonIndex).setText(correctWord);
+                    buttons.get(correctButtonIndex).setOnClickListener(v -> {
+                        addTime(10000);
+                        buttons.get(correctButtonIndex).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
+                        score += 5;
+                        txtScore.setText("Puan: " + score);
+                        setOptions();
+                    });
 
-            // Shuffle the list of incorrect words
-            Collections.shuffle(incorrectWords);
-
-            // Assign correct and incorrect options to buttons
-            List<Button> buttons = new ArrayList<>();
-            buttons.add(option1);
-            buttons.add(option2);
-            buttons.add(option3);
-            buttons.add(option4);
-
-            // Assign correct translation to a random button
-            int correctButtonIndex = random.nextInt(buttons.size());
-            buttons.get(correctButtonIndex).setText(correctWord);
-            buttons.get(correctButtonIndex).setOnClickListener(v -> {
-                addTime(10000);
-                buttons.get(correctButtonIndex).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
-                score+=5;
-                txtScore.setText("Puan: " + score);
-                setOptions();
-
+                    // Assign incorrect translations to other buttons
+                    for (int i = 0; i < buttons.size(); i++) {
+                        if (i != correctButtonIndex) {
+                            if (!incorrectWords.isEmpty()) {
+                                String incorrectWord = incorrectWords.get(0);
+                                final int finalI = i;
+                                buttons.get(i).setText(incorrectWord); // Use VocabularyClass method
+                                buttons.get(i).setOnClickListener(v -> {
+                                    buttons.get(finalI).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+                                    setOptions();
+                                });
+                                incorrectWords.remove(0);
+                            } else {
+                                buttons.get(i).setText("Placeholder");
+                                // Handle click for placeholder button
+                            }
+                        }
+                    }
+                }
+            }).exceptionally(e -> {
+                // This block will be executed if there was an error loading the vocabulary
+                Log.e(TAG, "Error loading vocabulary: " + e.getMessage());
+                return null;
             });
+        }, 500);
+    }
 
-            // Assign incorrect translations to other buttons
-            for (int i = 0; i < buttons.size(); i++) {
-                if (i != correctButtonIndex) {
-                    if (!incorrectWords.isEmpty()) {
-                        String incorrectWord = incorrectWords.get(0);
-                        final int finalI = i;
-                        buttons.get(i).setText(incorrectWord); // Use VocabularyClass method
-                        buttons.get(i).setOnClickListener(v -> {
-                            buttons.get(finalI).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
-                            setOptions();
-                        });
-                        incorrectWords.remove(0);
-                    } else {
-                        buttons.get(i).setText("Placeholder");
-                        // Handle click for placeholder button
+    public void startTest() {
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Numbers", Unit1NumbersTest.this);
+        fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
+            // This block will be executed when the vocabulary is loaded
+            if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
+                // Get a random word for the test
+                correctWord = vocabulary.getRandomWord();
+
+                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Numbers", vocabulary.getImageFileName(correctWord));
+                firebaseStorageHelper.downloadImage().thenAccept(file -> {
+                    Log.d(TAG, "Image loaded : " + vocabulary.getImageFileName(correctWord));
+                    // This block will be executed when the image is downloaded
+                    if (file != null) {
+                        Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
+                        // Run on UI thread since UI operations can't be done on a background thread
+                        runOnUiThread(() -> imageView.setImageBitmap(bitmap));
+                    }
+                }).exceptionally(e -> {
+                    // This block will be executed if there was an error downloading the image
+                    Log.e(TAG, "Error loading image: " + e.getMessage());
+                    return null;
+                });
+
+                // Create a list to hold incorrect words
+                List<String> incorrectWords = new ArrayList<>(vocabulary.getWords());
+                incorrectWords.remove(correctWord); // Remove the correct word
+
+                // Shuffle the list of incorrect words
+                Collections.shuffle(incorrectWords);
+
+                // Assign correct and incorrect options to buttons
+                List<Button> buttons = new ArrayList<>();
+                buttons.add(option1);
+                buttons.add(option2);
+                buttons.add(option3);
+                buttons.add(option4);
+
+                // Assign correct word to a random button
+                int correctButtonIndex = random.nextInt(buttons.size());
+                buttons.get(correctButtonIndex).setText(correctWord);
+                buttons.get(correctButtonIndex).setOnClickListener(v -> {
+                    addTime(10000);
+                    buttons.get(correctButtonIndex).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
+                    score += 5;
+                    txtScore.setText("Puan: " + score);
+                    setOptions();
+                });
+                for (int i = 0; i < buttons.size(); i++) {
+                    if (i != correctButtonIndex) {
+                        if (!incorrectWords.isEmpty()) {
+                            String incorrectWord = incorrectWords.get(0);
+                            final int finalI = i;
+                            buttons.get(i).setText(incorrectWord); // Use VocabularyClass method
+                            buttons.get(i).setOnClickListener(v -> {
+                                buttons.get(finalI).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
+                                setOptions();
+                            });
+                            incorrectWords.remove(0);
+                        } else {
+                            buttons.get(i).setText("Placeholder");
+                            // Handle click for placeholder button
+                        }
                     }
                 }
             }
-
-            // Set image
-            imageView.setImageResource(correctImageResource);
-        }, 500);
-    }
-    public void startTest() {
-        // Get a random word for the test
-        correctWord = getRandomWord();
-
-        // Get the image resource for the correct word
-        int correctImageResource = exercise.getImageResource(correctWord);
-
-        // Set the image for the test
-        imageView.setImageResource(correctImageResource);
-
-        // Create a list to hold incorrect words
-        List<String> incorrectWords = new ArrayList<>(exercise.getWords());
-        incorrectWords.remove(correctWord); // Remove the correct word
-
-        // Shuffle the list of incorrect words
-        Collections.shuffle(incorrectWords);
-
-        // Assign correct and incorrect options to buttons
-        List<Button> buttons = new ArrayList<>();
-        buttons.add(option1);
-        buttons.add(option2);
-        buttons.add(option3);
-        buttons.add(option4);
-
-        // Assign correct word to a random button
-        int correctButtonIndex = random.nextInt(buttons.size());
-        buttons.get(correctButtonIndex).setText(correctWord);
-        buttons.get(correctButtonIndex).setOnClickListener(v -> {
-            addTime(10000);
-            buttons.get(correctButtonIndex).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_green_light));
-            score+=5;
-            txtScore.setText("Puan: " + score);
-            setOptions();
+        }).exceptionally(e -> {
+            // This block will be executed if there was an error loading the vocabulary
+            Log.e(TAG, "Error loading vocabulary: " + e.getMessage());
+            return null;
         });
-        for (int i = 0; i < buttons.size(); i++) {
-            if (i != correctButtonIndex) {
-                if (!incorrectWords.isEmpty()) {
-                    String incorrectWord = incorrectWords.get(0);
-                    final int finalI = i;
-                    buttons.get(i).setText(incorrectWord); // Use VocabularyClass method
-                    buttons.get(i).setOnClickListener(v -> {
-                        buttons.get(finalI).setBackgroundColor(ContextCompat.getColor(this, android.R.color.holo_red_light));
-                        setOptions();
-                    });
-                    incorrectWords.remove(0);
-                } else {
-                    buttons.get(i).setText("Placeholder");
-                    // Handle click for placeholder button
-                }
-            }
-        }
-
     }
 
     private void addTime(long millisToAdd) {
@@ -228,11 +233,7 @@ public class Unit1NumbersTest extends AppCompatActivity {
 
     public void updateCountDownText() {
         int seconds = (int) (timeLeftInMillis / 1000) % 60;
-        String timeText = format("Kalan Süre: %02d", seconds);
+        String timeText = String.format("Kalan Süre: %02d", seconds);
         txtTime.setText(timeText);
-    }
-
-    public String getRandomWord() {
-        return exercise.getRandomWord();
     }
 }
