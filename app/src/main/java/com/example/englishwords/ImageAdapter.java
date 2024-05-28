@@ -46,10 +46,21 @@ public class ImageAdapter extends BaseAdapter {
             imageView = (ImageView) convertView;
         }
 
-
         // Set margins programmatically
 
         imageView.setImageResource(mImages[position]);
         return imageView;
+    }
+
+    // Method to update the adapter when a correct image is matched
+    public void handleCorrectImageMatch(int position) {
+        // Here you can implement the logic to handle the correct image match
+        // For example, you can change the appearance of the ImageView associated with the matched image
+
+        // In this example, let's just change the image resource to a placeholder
+
+
+        // Notify the adapter that the data has changed
+        notifyDataSetChanged();
     }
 }

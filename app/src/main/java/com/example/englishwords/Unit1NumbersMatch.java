@@ -6,6 +6,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.GridView;
 import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
@@ -15,7 +16,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -34,6 +34,7 @@ public class Unit1NumbersMatch extends AppCompatActivity {
     private DraggableButton draggableButtonBottomLeft;
     private DraggableButton draggableButtonBottomRight;
     private final ArrayList<DraggableButton> selectedButtons = new ArrayList<>();
+    private ImageAdapter imageAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,6 +56,7 @@ public class Unit1NumbersMatch extends AppCompatActivity {
                 runOnUiThread(() -> {
                     initializeImages();
                     initializeDraggableButtons();
+
                 });
             }
         }).exceptionally(e -> {
@@ -122,6 +124,7 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         }
     }
 
+
     // Fisher-Yates shuffle algorithm
     private void shuffleArray(DraggableButton[] buttons) {
         Random rnd = new Random();
@@ -134,19 +137,12 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         }
     }
 
-    private DraggableButton getDraggableButton(int index) {
-        switch (index) {
-            case 0:
-                return draggableButtonTopLeft;
-            case 1:
-                return draggableButtonTopRight;
-            case 2:
-                return draggableButtonBottomLeft;
-            case 3:
-                return draggableButtonBottomRight;
-            default:
-                return draggableButtonTopLeft;
-        }
+    private void handleCorrectImageMatch(int position) {
+        // Here you can implement the logic to handle the correct image match
+        // For example, you can change the appearance of the ImageView associated with the matched image
+
+        // In this example, let's just change the image resource to a placeholder
+        imageAdapter.handleCorrectImageMatch(position);
     }
 
     private static class Pair {
