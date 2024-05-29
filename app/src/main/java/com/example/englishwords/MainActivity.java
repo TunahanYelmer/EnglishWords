@@ -72,23 +72,9 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, Unit8Weather.class);
             startActivity(intent);
         });
-        BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
-        bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
-            @Override
-            public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-                if (item.getItemId() == R.id.menu_item_1) {
-                    Intent intent = new Intent(MainActivity.this, MainActivity.class);
-                    startActivity(intent);
-                    return true;
-                } else if (item.getItemId() == R.id.menu_item_2) {
-                    // Handle menu item 2
-                    return true;
-                } else {
-                    return false;
-                }
-            }
 
-        });
+
+
         for (int i = 1; i <= 10; i++) {
             String fileName;
             int imageButtonID;
