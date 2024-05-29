@@ -79,10 +79,10 @@ public class VocabularyClass {
         return images;
     }
 
-    public String getWordFromImageResource(int imageResourceID) {
-        for (Map.Entry<String, Integer> entry : vocabularyImageResource.entrySet()) {
-            if (entry.getValue() == imageResourceID) {
-                return entry.getKey();
+    public String getWordFromImageName(String imageName) {
+        for (Map.Entry<WordData, String> entry : vocabulary.entrySet()) {
+            if (entry.getValue().equals(imageName)) {
+                return entry.getKey().getWord();
             }
         }
         return null;

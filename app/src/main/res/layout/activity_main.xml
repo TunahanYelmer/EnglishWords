@@ -191,48 +191,6 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
-            <ImageButton
-                android:id="@+id/imageButton9"
-                android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:background="@drawable/unit_9_aile"
-                android:scaleType="fitXY"
-                android:src="@drawable/unit_9_aile"
-                android:contentDescription="@string/unit_9_aile"
-                android:layout_margin="15dp"
-                android:layout_gravity="center"/>
-
-            <TextView
-                android:id="@+id/txtAile"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/unit_9_aile"
-                android:textAlignment="center"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-            <ImageButton
-                android:id="@+id/imageButton10"
-                android:layout_width="300dp"
-                android:layout_height="300dp"
-                android:background="@drawable/unit_10_tasitlar"
-                android:scaleType="fitXY"
-                android:src="@drawable/unit_10_tasitlar"
-                android:contentDescription="@string/unit_10_tasitlar"
-                android:layout_margin="15dp"
-                android:layout_gravity="center"/>
-
-            <TextView
-                android:id="@+id/txtTasitlar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:text="@string/unit_10_tasitlar"
-                android:textAlignment="center"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
         </LinearLayout>
 
     </ScrollView>

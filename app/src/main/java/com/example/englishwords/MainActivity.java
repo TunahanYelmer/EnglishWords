@@ -72,16 +72,6 @@ public class MainActivity extends AppCompatActivity {
             Intent intent = new Intent(MainActivity.this, Unit8Weather.class);
             startActivity(intent);
         });
-        ImageButton imageButton9 = findViewById(R.id.imageButton9);
-        imageButton9.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, Unit9Family.class);
-            startActivity(intent);
-        });
-        ImageButton imageButton10 = findViewById(R.id.imageButton10);
-        imageButton10.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, Unit10Vehicles.class);
-            startActivity(intent);
-        });
         BottomNavigationView bottomNavigationView = findViewById(R.id.bottom_navigation);
         bottomNavigationView.setOnNavigationItemSelectedListener(new BottomNavigationView.OnNavigationItemSelectedListener() {
             @Override
@@ -136,14 +126,7 @@ public class MainActivity extends AppCompatActivity {
                     fileName = "unit_8_aile";
                     imageButtonID = R.id.imageButton8;
                     break;
-                case 9:
-                    fileName = "unit_9_ev_icinde";
-                    imageButtonID = R.id.imageButton9;
-                    break;
-                case 10:
-                    fileName = "unit_10_sehir";
-                    imageButtonID = R.id.imageButton10;
-                    break;
+
                 default:
                     fileName = "unit_1_sayilar";
                     imageButtonID = R.id.imageButton;

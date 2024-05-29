@@ -17,7 +17,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import java.util.Locale;
 
-public class Unit5FruitsLearn extends AppCompatActivity {
+public class Unit8WeatherLearn extends AppCompatActivity {
     private ImageView imageView;
     private TextView wordTextView;
     private TextView translationTextView;
@@ -59,7 +59,7 @@ public class Unit5FruitsLearn extends AppCompatActivity {
     }
 
     private void displayNextQuestion() {
-        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Fruits", Unit5FruitsLearn.this);
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Weather", Unit8WeatherLearn.this);
         fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
             // This block will be executed when the vocabulary is loaded
             if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
@@ -68,7 +68,7 @@ public class Unit5FruitsLearn extends AppCompatActivity {
                 String wordTranslation = vocabulary.getTranslation(word);
                 this.word = word;
                 this.wordTranslation = wordTranslation;
-                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Fruits",vocabulary.getImageFileName(word));
+                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Weather",vocabulary.getImageFileName(word));
                 firebaseStorageHelper.downloadImage().thenAccept(file -> {
                     Log.d(TAG, "Image loaded : " +  vocabulary.getImageFileName(word));
                     // This block will be executed when the image is downloaded

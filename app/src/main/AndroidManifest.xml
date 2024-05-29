@@ -13,6 +13,69 @@
         android:theme="@style/Theme.EnglishWords"
         tools:targetApi="31">
         <activity
+            android:name=".Unit8WeatherMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit8WeatherTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit8WeatherLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit7SchoolMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit7SchoolTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit7SchoolLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit6ClothingMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit6ClothingTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit6ClothingLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit5FruitsMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit5FruitsTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit5FruitsLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit4FoodMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit4FoodTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit4FoodLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit3AnimalsMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit3AnimalsTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit3AnimalsLearn"
+            android:exported="false" />
+        <activity
+            android:name=".Unit2ColorsMatch"
+            android:exported="false" />
+        <activity
+            android:name=".Unit2ColorsTest"
+            android:exported="false" />
+        <activity
+            android:name=".Unit2ColorsLearn"
+            android:exported="false" />
+        <activity
             android:name=".Unit1NumbersMatch"
             android:exported="false" />
         <activity
@@ -60,7 +123,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>

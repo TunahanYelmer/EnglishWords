@@ -1,13 +1,18 @@
 package com.example.englishwords;
 
 import static android.content.ContentValues.TAG;
+import static android.view.DragEvent.ACTION_DROP;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.util.Log;
+import android.view.DragEvent;
+import android.view.View;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -33,7 +38,13 @@ public class Unit1NumbersMatch extends AppCompatActivity {
     private DraggableButton draggableButtonTopRight;
     private DraggableButton draggableButtonBottomLeft;
     private DraggableButton draggableButtonBottomRight;
+    private TextView scoreTextView;
+    private CountDownTimer countDownTimer;
+
+    private TextView timeTextView;
+    private long timeLeftInMillis = 60000; // Initial time in milliseconds
     private final ArrayList<DraggableButton> selectedButtons = new ArrayList<>();
+    private int score;
     private ImageAdapter imageAdapter;
 
     @Override
@@ -47,16 +58,23 @@ public class Unit1NumbersMatch extends AppCompatActivity {
             return insets;
         });
 
+        scoreTextView = findViewById(R.id.txtScore);
+        timeTextView = findViewById(R.id.txtTime);
+        score = 0;
+        scoreTextView.setText("Score: " + score);
+
+        startTimer(timeLeftInMillis); // Start the timer
+
+        VocabularyClass vocabulary = new VocabularyClass();
         FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Numbers", Unit1NumbersMatch.this);
         CompletableFuture<VocabularyClass> vocabularyFuture = fireStoreDatabase.getVocabulary();
 
-        vocabularyFuture.thenAccept(vocabulary -> {
-            if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
-                exercise = vocabulary;
+        vocabularyFuture.thenAccept(vocab -> {
+            if (vocab != null && !vocab.getWords().isEmpty()) {
+                exercise = vocab;
                 runOnUiThread(() -> {
                     initializeImages();
                     initializeDraggableButtons();
-
                 });
             }
         }).exceptionally(e -> {
@@ -65,7 +83,22 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         });
     }
 
+    private void startTimer(long durationInMillis) {
+        countDownTimer = new CountDownTimer(durationInMillis, 1000) {
+            public void onTick(long millisUntilFinished) {
+                timeLeftInMillis = millisUntilFinished;
+                timeTextView.setText("Time: " + millisUntilFinished / 1000);
+            }
+
+            public void onFinish() {
+                timeTextView.setText("Time's up!");
+            }
+        }.start();
+    }
+
     private void initializeImages() {
+        selectedPairs.clear();  // Clear the old pairs
+
         ArrayList<String> wordsList = exercise.getWords();
         Map<String, String> wordToImageFileName = exercise.getWordToImageFileName();
 
@@ -89,6 +122,20 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         loadImageIntoView(imageViewMiddleTop, selectedPairs.get(1).getImageFileName());
         loadImageIntoView(imageViewMiddleBottom, selectedPairs.get(2).getImageFileName());
         loadImageIntoView(imageViewBottom, selectedPairs.get(3).getImageFileName());
+
+        View.OnDragListener dragListener = new View.OnDragListener() {
+            @Override
+            public boolean onDrag(View v, DragEvent event) {
+                Log.d(TAG, "onDrag: ");
+                onDraggableButtonDrop(v, event);
+                return true;
+            }
+        };
+
+        imageViewTop.setOnDragListener(dragListener);
+        imageViewMiddleTop.setOnDragListener(dragListener);
+        imageViewMiddleBottom.setOnDragListener(dragListener);
+        imageViewBottom.setOnDragListener(dragListener);
     }
 
     private void loadImageIntoView(ImageView imageView, String imageFileName) {
@@ -96,7 +143,10 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         firebaseStorageHelper.downloadImage().thenAccept(file -> {
             if (file != null) {
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
-                runOnUiThread(() -> imageView.setImageBitmap(bitmap));
+                runOnUiThread(() -> {
+                    imageView.setImageBitmap(bitmap);
+                    imageView.setTag(imageFileName);  // Set the image name to the ImageView's tag
+                });
             }
         }).exceptionally(e -> {
             Log.e(TAG, "Error loading image: " + e.getMessage());
@@ -105,25 +155,27 @@ public class Unit1NumbersMatch extends AppCompatActivity {
     }
 
     private void initializeDraggableButtons() {
+        selectedButtons.clear();
+
         draggableButtonTopLeft = findViewById(R.id.draggableButtonTopLeft);
         draggableButtonTopRight = findViewById(R.id.draggableButtonTopRight);
         draggableButtonBottomLeft = findViewById(R.id.draggableButtonBottomLeft);
         draggableButtonBottomRight = findViewById(R.id.draggableButtonBottomRight);
 
-        DraggableButton[] buttons = { draggableButtonTopLeft, draggableButtonTopRight, draggableButtonBottomLeft, draggableButtonBottomRight };
+        DraggableButton[] buttons = {draggableButtonTopLeft, draggableButtonTopRight, draggableButtonBottomLeft, draggableButtonBottomRight};
 
         // Shuffle the buttons
         shuffleArray(buttons);
 
         for (int i = 0; i < 4; i++) {
             DraggableButton randomButton = buttons[i];
+            randomButton.setCorrect(false);
             String randomWord = selectedPairs.get(i).getWord();
             randomButton.setCorrespondingText(randomWord);
             randomButton.setText(randomWord);
             selectedButtons.add(randomButton);
         }
     }
-
 
     // Fisher-Yates shuffle algorithm
     private void shuffleArray(DraggableButton[] buttons) {
@@ -137,12 +189,54 @@ public class Unit1NumbersMatch extends AppCompatActivity {
         }
     }
 
-    private void handleCorrectImageMatch(int position) {
-        // Here you can implement the logic to handle the correct image match
-        // For example, you can change the appearance of the ImageView associated with the matched image
+    private boolean allButtonsCorrect() {
+        for (DraggableButton button : selectedButtons) {
+            if (!button.isCorrect()) {
+                return false;
+            }
+        }
+        return true;
+    }
 
-        // In this example, let's just change the image resource to a placeholder
-        imageAdapter.handleCorrectImageMatch(position);
+    public void onDraggableButtonDrop(View view, DragEvent event) {
+        if (event.getAction() == ACTION_DROP) {
+            // Get the DraggableButton that was dragged
+            DraggableButton button = (DraggableButton) event.getLocalState();
+            String correspondingText = button.getCorrespondingText();
+            if (correspondingText != null) {
+                // Get the ImageView that the button was dropped on
+                ImageView droppedImageView = (ImageView) view;
+                // Get the image name from the ImageView's tag
+                String imageName = (String) droppedImageView.getTag();
+                Log.d(TAG, "Image name: " + imageName);
+                // Get the word corresponding to the image
+                String imageViewWord = exercise.getWordFromImageName(imageName);
+                Log.d(TAG, "onDraggableButtonDrop: " + imageViewWord);
+
+                for (DraggableButton selectedButton : selectedButtons) {
+                    if (selectedButton.equals(button)) {
+                        if (imageViewWord != null && imageViewWord.equals(selectedButton.getCorrespondingText())) {
+                            selectedButton.setCorrect(true);
+                            score++;  // Increment the score
+                            scoreTextView.setText("Score: " + score);  // Update the score text view
+
+                            // Add time to the timer
+                            timeLeftInMillis += 5000;  // Add 5 seconds
+                            countDownTimer.cancel();
+                            startTimer(timeLeftInMillis);  // Restart the timer with the updated time
+
+                            // Break out of the loop since we found the matching button
+                            break;
+                        }
+                    }
+                }
+
+                if (allButtonsCorrect()) {
+                    initializeImages();
+                    initializeDraggableButtons();
+                }
+            }
+        }
     }
 
     private static class Pair {

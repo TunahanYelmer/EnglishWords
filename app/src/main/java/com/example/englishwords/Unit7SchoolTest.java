@@ -24,7 +24,7 @@ import java.util.Random;
 
 import static android.content.ContentValues.TAG;
 
-public class Unit5FruitsTest extends AppCompatActivity {
+public class Unit7SchoolTest extends AppCompatActivity {
     private TextView txtScore;
     private TextView txtTime;
     private int score = 0;
@@ -63,14 +63,14 @@ public class Unit5FruitsTest extends AppCompatActivity {
     private void setOptions() {
         // Reset button colors with a slight delay
         new Handler().postDelayed(() -> {
-            FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Fruits", Unit5FruitsTest.this);
+            FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("School", Unit7SchoolTest.this);
             fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
                 // This block will be executed when the vocabulary is loaded
                 if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
                     // Get a random word from the vocabulary
                     correctWord = vocabulary.getRandomWord();
 
-                    FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Fruits", vocabulary.getImageFileName(correctWord));
+                    FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("School", vocabulary.getImageFileName(correctWord));
                     firebaseStorageHelper.downloadImage().thenAccept(file -> {
                         Log.d(TAG, "Image loaded : " + vocabulary.getImageFileName(correctWord));
                         // This block will be executed when the image is downloaded
@@ -138,14 +138,14 @@ public class Unit5FruitsTest extends AppCompatActivity {
     }
 
     public void startTest() {
-        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Fruits", Unit5FruitsTest.this);
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("School", Unit7SchoolTest.this);
         fireStoreDatabase.getVocabulary().thenAccept(vocabulary -> {
             // This block will be executed when the vocabulary is loaded
             if (vocabulary != null && !vocabulary.getWords().isEmpty()) {
                 // Get a random word for the test
                 correctWord = vocabulary.getRandomWord();
 
-                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Fruits", vocabulary.getImageFileName(correctWord));
+                FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("School", vocabulary.getImageFileName(correctWord));
                 firebaseStorageHelper.downloadImage().thenAccept(file -> {
                     Log.d(TAG, "Image loaded : " + vocabulary.getImageFileName(correctWord));
                     // This block will be executed when the image is downloaded

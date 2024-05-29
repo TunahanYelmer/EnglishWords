@@ -26,7 +26,7 @@ import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 
-public class Unit3AnimalsMatch extends AppCompatActivity {
+public class Unit8WeatherMatch extends AppCompatActivity {
     private VocabularyClass exercise;
     private final List<Pair> selectedPairs = new ArrayList<>();
     private final Random rnd = new Random();
@@ -66,7 +66,7 @@ public class Unit3AnimalsMatch extends AppCompatActivity {
         startTimer(timeLeftInMillis); // Start the timer
 
         VocabularyClass vocabulary = new VocabularyClass();
-        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Animals", Unit3AnimalsMatch.this);
+        FireStoreDatabase fireStoreDatabase = new FireStoreDatabase("Weather", Unit8WeatherMatch.this);
         CompletableFuture<VocabularyClass> vocabularyFuture = fireStoreDatabase.getVocabulary();
 
         vocabularyFuture.thenAccept(vocab -> {
@@ -139,7 +139,7 @@ public class Unit3AnimalsMatch extends AppCompatActivity {
     }
 
     private void loadImageIntoView(ImageView imageView, String imageFileName) {
-        FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Animals", imageFileName);
+        FirebaseStorageHelper firebaseStorageHelper = new FirebaseStorageHelper("Weather", imageFileName);
         firebaseStorageHelper.downloadImage().thenAccept(file -> {
             if (file != null) {
                 Bitmap bitmap = BitmapFactory.decodeFile(file.getAbsolutePath());
